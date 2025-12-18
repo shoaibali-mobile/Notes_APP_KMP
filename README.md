@@ -33,3 +33,12 @@ in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and r
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+
+
+<img width="400" height="800" alt="Screenshot_20251218_170735" src="https://github.com/user-attachments/assets/66770790-15c8-418d-a77a-2e2a84fac843" />
+
+
+
+
+
