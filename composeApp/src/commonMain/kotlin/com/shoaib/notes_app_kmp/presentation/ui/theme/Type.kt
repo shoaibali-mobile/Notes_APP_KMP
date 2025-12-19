@@ -1,4 +1,4 @@
-package com.shoaib.notes_app_kmp.ui.theme
+package com.shoaib.notes_app_kmp.presentation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable

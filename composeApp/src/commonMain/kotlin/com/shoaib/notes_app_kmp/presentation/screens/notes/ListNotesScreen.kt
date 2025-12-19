@@ -1,4 +1,4 @@
-package com.shoaib.notes_app_kmp.notes
+package com.shoaib.notes_app_kmp.presentation.screens.notes
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shoaib.notes_app_kmp.model.Note
-import com.shoaib.notes_app_kmp.ui.theme.nunitoFontFamily
+import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 

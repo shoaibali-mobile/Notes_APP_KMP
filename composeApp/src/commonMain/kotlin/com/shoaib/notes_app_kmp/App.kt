@@ -21,9 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.shoaib.notes_app_kmp.notes.ListNotesScreen
-import com.shoaib.notes_app_kmp.ui.theme.NotesAppTheme
-import com.shoaib.notes_app_kmp.ui.theme.nunitoFontFamily
+import com.shoaib.notes_app_kmp.presentation.screens.notes.ListNotesScreen
+import com.shoaib.notes_app_kmp.presentation.ui.theme.NotesAppTheme
+import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.rafiki
 import org.jetbrains.compose.resources.painterResource
@@ -34,7 +34,10 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App() {
     NotesAppTheme {
-
+        // Temporarily showing the editor screen to match Figma design
+        com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen()
+        
+        /* Original code - uncomment when ready
         val viewModel = viewModel { HomeViewModel() }
         val notes by viewModel.notes.collectAsState()
         
@@ -66,6 +69,7 @@ fun App() {
                      EmptyView()
             }
         }
+        */
     }
 }
 
