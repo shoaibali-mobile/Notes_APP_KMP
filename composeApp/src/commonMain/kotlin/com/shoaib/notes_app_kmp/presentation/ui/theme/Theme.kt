@@ -1,4 +1,4 @@
-package com.shoaib.notes_app_kmp.ui.theme
+package com.shoaib.notes_app_kmp.presentation.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

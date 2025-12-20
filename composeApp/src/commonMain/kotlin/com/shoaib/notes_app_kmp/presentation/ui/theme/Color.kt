@@ -1,4 +1,4 @@
-package com.shoaib.notes_app_kmp.ui.theme
+package com.shoaib.notes_app_kmp.presentation.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -217,3 +217,4 @@ val surfaceContainerLowDarkHighContrast = Color(0xFF1B2023)
 val surfaceContainerDarkHighContrast = Color(0xFF2C3133)
 val surfaceContainerHighDarkHighContrast = Color(0xFF373C3F)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF42484A)
+
