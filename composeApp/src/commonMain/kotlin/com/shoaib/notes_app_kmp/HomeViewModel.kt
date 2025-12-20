@@ -1,7 +1,7 @@
 package com.shoaib.notes_app_kmp
 
 import androidx.lifecycle.ViewModel
-import com.shoaib.notes_app_kmp.model.Note
+import com.shoaib.notes_app_kmp.domain.model.Note
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update

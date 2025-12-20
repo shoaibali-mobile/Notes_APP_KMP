@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,15 +20,18 @@ import androidx.compose.ui.unit.sp
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.back_btn
+import notes_app_kmp.composeapp.generated.resources.save_ic
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+
 
 @Composable
 fun NoteEditorScreen(
     onBackClick: () -> Unit = {},
-    onSaveClick: () -> Unit = {},
     onVisibilityClick: () -> Unit = {}
 ) {
+
+
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
 
@@ -48,7 +50,10 @@ fun NoteEditorScreen(
             TopNavigationBar(
                 onBackClick = onBackClick,
                 onVisibilityClick = onVisibilityClick,
-                onSaveClick = onSaveClick
+                onSaveClick = {
+                    // viewModel.addNote(title, content)
+                    onBackClick()
+                }
             )
 
             // Content Area
@@ -188,10 +193,12 @@ fun TopNavigationBar(
                         shape = RoundedCornerShape(15.dp)
                     )
             ) {
-                Text(
-                    text = "💾",
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                Icon(
+                    painter = painterResource(Res.drawable.save_ic),
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant, // Makes the icon white
+                    modifier = Modifier.size(24.dp)
+
                 )
             }
         }

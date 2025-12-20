@@ -1,95 +1,50 @@
 package com.shoaib.notes_app_kmp
 
-
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.shoaib.notes_app_kmp.presentation.screens.notes.ListNotesScreen
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.shoaib.notes_app_kmp.data.local.DatabaseDriverFactory
+import com.shoaib.notes_app_kmp.presentation.navigation.Screen
+import com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen
+import com.shoaib.notes_app_kmp.presentation.screens.notes.NotesListScreen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.NotesAppTheme
-import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
-import notes_app_kmp.composeapp.generated.resources.Res
-import notes_app_kmp.composeapp.generated.resources.rafiki
-import org.jetbrains.compose.resources.painterResource
+import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
 
 @Composable
 @Preview
 fun App() {
     NotesAppTheme {
-        // Temporarily showing the editor screen to match Figma design
-        com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen()
-        
-        /* Original code - uncomment when ready
-        val viewModel = viewModel { HomeViewModel() }
-        val notes by viewModel.notes.collectAsState()
-        
-        Scaffold(
-            floatingActionButton = {
-               FloatingActionButton(onClick = {}, shape = CircleShape){
-                   Text("+",
-                       fontSize = 18.sp
-                   )
-               }
-            }
-        ) {
-
-            Column(
-                modifier = Modifier.padding(it)
-            ){
-                Text(
-                    text = "Notes",
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    style = TextStyle(
-                        fontFamily = nunitoFontFamily(),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 43.sp
-                    )
-                )
-                if(notes.isNotEmpty())
-                    ListNotesScreen(notes)
-                else
-                     EmptyView()
-            }
-        }
-        */
+        AppContent()
     }
 }
 
 @Composable
-fun EmptyView(){
-    Box(modifier = Modifier.fillMaxSize()){
-        Column(modifier = Modifier.align (Alignment.Center)) {
-            Image(
-                painterResource(Res.drawable.rafiki),
-                contentDescription = null,
-                modifier = Modifier.size(width = 350.dp, height = 287.dp)
+private fun AppContent() {
+    val navController = rememberNavController()
+    val viewModel: NotesViewModel = viewModel()
+
+    NavHost(
+        navController = navController,
+        startDestination = Screen.NotesList.route,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        composable(Screen.NotesList.route) {
+            NotesListScreen(
+                navController = navController,
+                viewModel = viewModel
             )
-            Text(
-                text = "Create Your First Notes",
-                modifier = Modifier.align( Alignment.CenterHorizontally),
-                style = TextStyle(
-                    fontFamily = nunitoFontFamily(),
-                    fontWeight = FontWeight.Light,
-                    fontSize = 20.sp
-                )
+        }
+
+        composable(Screen.NoteEditor.route) {
+            NoteEditorScreen(
+                onBackClick = { navController.popBackStack() }
             )
         }
     }

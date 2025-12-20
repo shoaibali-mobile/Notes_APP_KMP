@@ -1,6 +1,7 @@
 package com.shoaib.notes_app_kmp.presentation.screens.notes
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,17 +19,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.shoaib.notes_app_kmp.model.Note
+import com.shoaib.notes_app_kmp.domain.model.Note
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
 @Composable
-fun ListNotesScreen(list:List<Note>){
+fun ListNotesScreen(
+    list: List<Note>,
+    onNoteClick: () -> Unit = {}
+) {
+
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(list.size) { index ->
-            NoteItem(list[index])
+        items(list.size, key = { list[it].id }) { index ->
+            NoteItem(
+                note = list[index],
+                onClick = onNoteClick
+            )
         }
     }
 }
@@ -45,13 +53,17 @@ fun getRandomColor(): Color {
 }
 
 @Composable
-fun NoteItem(note: Note) {
+fun NoteItem(
+    note: Note,
+    onClick: () -> Unit = {}
+) {
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(getRandomColor())
+            .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
         Column {
@@ -82,8 +94,8 @@ fun NoteItem(note: Note) {
 @Composable
 @Preview
 fun ListNotesScreen(){
-    ListNotesScreen(
-        listOf(Note("This is the first not of Shoaib Ali i want to show ","ahgjvdjavdbabdkubakdbk"),
-    Note("This is the first not of Shoaib Ali i want to show ","ahgjvdjavdbabdkubakdbk")))
+//    ListNotesScreen(
+//        listOf(Note("This is the first not of Shoaib Ali i want to show ","ahgjvdjavdbabdkubakdbk"),
+//    Note("This is the first not of Shoaib Ali i want to show ","ahgjvdjavdbabdkubakdbk")))
 
 }
