@@ -19,6 +19,10 @@ import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.rafiki
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+
 
 @Composable
 fun NotesListScreen(
@@ -123,4 +127,3 @@ private fun EmptyView() {
         }
     }
 }
-

@@ -8,7 +8,7 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
-actual class DatabaseDriverFactory(
+actual class DatabaseDriverFactory actual constructor(
     platformContext: PlatformContext
 ) {
     actual fun createDriver(): NotesDatabase {

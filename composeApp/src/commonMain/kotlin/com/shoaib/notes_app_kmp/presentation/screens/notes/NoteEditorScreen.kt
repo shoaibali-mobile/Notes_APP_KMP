@@ -18,22 +18,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
+import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.back_btn
 import notes_app_kmp.composeapp.generated.resources.save_ic
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun NoteEditorScreen(
     onBackClick: () -> Unit = {},
-    onVisibilityClick: () -> Unit = {}
+    onVisibilityClick: () -> Unit = {},
+    viewModel: NotesViewModel
 ) {
-
-
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
+    val snackBarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -41,91 +46,160 @@ fun NoteEditorScreen(
             .background(MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
-            // Top Navigation Bar
             TopNavigationBar(
                 onBackClick = onBackClick,
                 onVisibilityClick = onVisibilityClick,
                 onSaveClick = {
-                    // viewModel.addNote(title, content)
-                    onBackClick()
+                    handleSaveNote(
+                        title = title,
+                        content = content,
+                        viewModel = viewModel,
+                        onBackClick = onBackClick,
+                        snackBarHostState = snackBarHostState,
+                        scope = scope
+                    )
                 }
             )
 
-            // Content Area
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 24.dp)
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Title Input
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    textStyle = TextStyle(
+            NoteEditorContent(
+                title = title,
+                onTitleChange = { title = it },
+                content = content,
+                onContentChange = { content = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        
+        SnackbarHost(
+            hostState = snackBarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+        )
+    }
+}
+
+@Composable
+private fun NoteEditorContent(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    content: String,
+    onContentChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        TitleInputField(
+            title = title,
+            onTitleChange = onTitleChange
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+            ContentInputField(
+                content = content,
+                onContentChange = onContentChange
+            )
+        }
+    }
+}
+
+
+
+@Composable
+private fun TitleInputField(
+    title: String,
+    onTitleChange: (String) -> Unit
+) {
+    BasicTextField(
+        value = title,
+        onValueChange = onTitleChange,
+        textStyle = TextStyle(
+            fontFamily = nunitoFontFamily(),
+            fontSize = 48.sp,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        decorationBox = { innerTextField ->
+            if (title.isEmpty()) {
+                Text(
+                    text = "Title",
+                    style = TextStyle(
                         fontFamily = nunitoFontFamily(),
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    decorationBox = { innerTextFiled->
-                        if (title.isEmpty()){
-                            Text(
-                                text = "Title",
-                                style = TextStyle(
-                                    fontFamily = nunitoFontFamily(),
-                                    fontSize = 48.sp,
-                                    fontWeight = FontWeight.Normal,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
-                        innerTextFiled()
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Content Input
-                BasicTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    textStyle = TextStyle(
-                        fontFamily = nunitoFontFamily(),
-                        fontSize = 23.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState()),
-                    decorationBox = { innerTextFiled->
-                        if (content.isEmpty()){
-                            Text(
-                                text = "Type something....",
-                                style = TextStyle(
-                                    fontFamily = nunitoFontFamily(),
-                                    fontSize = 28.sp,
-                                    fontWeight = FontWeight.Normal,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
-                        innerTextFiled()
-
-                    }
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
+            innerTextField()
+        }
+    )
+}
+
+@Composable
+private fun ContentInputField(
+    content: String,
+    onContentChange: (String) -> Unit
+) {
+    BasicTextField(
+        value = content,
+        onValueChange = onContentChange,
+        textStyle = TextStyle(
+            fontFamily = nunitoFontFamily(),
+            fontSize = 23.sp,
+            fontWeight = FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface
+        ),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+        decorationBox = { innerTextField ->
+            if (content.isEmpty()) {
+                Text(
+                    text = "Type something....",
+                    style = TextStyle(
+                        fontFamily = nunitoFontFamily(),
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+            innerTextField()
+        }
+    )
+}
+
+private fun handleSaveNote(
+    title: String,
+    content: String,
+    viewModel: NotesViewModel,
+    onBackClick: () -> Unit,
+    snackBarHostState: SnackbarHostState,
+    scope: CoroutineScope
+) {
+    if (title.isNotBlank() && content.isNotBlank()) {
+        viewModel.addNote(title, content)
+        onBackClick()
+    } else {
+        scope.launch {
+            snackBarHostState.showSnackbar(
+                message = "Please fill both title and content"
+            )
         }
     }
 }
@@ -195,19 +269,37 @@ fun TopNavigationBar(
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.save_ic),
-                    contentDescription = "Back",
+                    contentDescription = "save",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant, // Makes the icon white
                     modifier = Modifier.size(24.dp)
 
                 )
             }
         }
+
     }
 }
 
-@Preview
-@Composable
-fun NoteEditorScreenPreview() {
-    NoteEditorScreen()
-}
 
+
+//@Preview
+//@Composable
+//fun NoteEditorScreenPreview() {
+//    // Create mock use cases with a mock repository
+//    val mockRepository = object : com.shoaib.notes_app_kmp.domain.repository.NotesRepository {
+//        override fun getAllNotes() = flowOf(emptyList())
+//        override suspend fun addNote(note: com.shoaib.notes_app_kmp.domain.model.Note) = 0L
+//    }
+//
+//    val mockGetNotesUseCase = GetNotesUseCase(mockRepository)
+//    val mockAddNoteUseCase = AddNoteUseCase(mockRepository)
+//
+//    val mockViewModel = NotesViewModel(
+//        getNotesUseCase = mockGetNotesUseCase,
+//        addNoteUseCase = mockAddNoteUseCase
+//    )
+//
+//    NoteEditorScreen(
+//        viewModel = mockViewModel
+//    )
+//}

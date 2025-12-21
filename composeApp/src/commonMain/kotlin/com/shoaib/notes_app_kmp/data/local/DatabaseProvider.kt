@@ -7,3 +7,4 @@ object DatabaseProvider {
         return database ?: factory.createDriver().also { database = it }
     }
 }
+

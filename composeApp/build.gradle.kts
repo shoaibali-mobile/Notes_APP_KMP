@@ -47,6 +47,10 @@ kotlin {
 
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+
+            // Koin
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
