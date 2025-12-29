@@ -2,6 +2,7 @@ package com.shoaib.notes_app_kmp
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -23,6 +24,7 @@ import com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen
 import com.shoaib.notes_app_kmp.presentation.screens.notes.NotesListScreen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.NotesAppTheme
 import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
+import com.shoaib.notes_app_kmp.util.AnalyticsHelper
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -62,6 +64,13 @@ private fun AppContent() {
         modifier = Modifier.fillMaxSize()
     ) {
         composable(Screen.NotesList.route) {
+            // Track screen view
+            LaunchedEffect(Unit) {
+                AnalyticsHelper.logEvent("screen_view", mapOf(
+                    "screen_name" to "notes_list"
+                ))
+            }
+            
             NotesListScreen(
                 navController = navController,
                 viewModel = viewModel
@@ -81,6 +90,15 @@ private fun AppContent() {
             val notes by viewModel.notes.collectAsState()
             val note = notes.find { it.id == noteId }
             val noteIdForEditor = if (noteId == 0L) null else noteId
+            
+            // Track screen view
+            LaunchedEffect(noteId) {
+                AnalyticsHelper.logEvent("screen_view", mapOf(
+                    "screen_name" to "note_editor",
+                    "is_new_note" to (noteId == 0L),
+                    "note_id" to noteId
+                ))
+            }
             
             NoteEditorScreen(
                 noteId = noteIdForEditor,

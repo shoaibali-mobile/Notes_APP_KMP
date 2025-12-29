@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
+import com.shoaib.notes_app_kmp.util.AnalyticsHelper
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.back_btn
 import notes_app_kmp.composeapp.generated.resources.save_ic
@@ -64,12 +65,31 @@ fun NoteEditorScreen(
         ) {
             // Top Navigation Bar
             TopNavigationBar(
-                onBackClick = onBackClick,
-                onVisibilityClick = onVisibilityClick,
+                onBackClick = {
+                    // Track back button click
+                    AnalyticsHelper.logEvent("back_button_clicked", mapOf(
+                        "screen_name" to "note_editor",
+                        "has_changes" to hasChanges,
+                        "is_new_note" to (noteId == null)
+                    ))
+                    onBackClick()
+                },
+                onVisibilityClick = {
+                    // Track visibility button click
+                    AnalyticsHelper.logEvent("visibility_button_clicked", mapOf(
+                        "screen_name" to "note_editor"
+                    ))
+                    onVisibilityClick()
+                },
                 onSaveClick = {
                     if (hasChanges && (title.isNotBlank() || content.isNotBlank())) {
                         showSaveDialog = true
                     } else if (title.isNotBlank() || content.isNotBlank()) {
+                        // Track save without dialog
+                        AnalyticsHelper.logEvent("note_saved", mapOf(
+                            "is_new_note" to (noteId == null),
+                            "has_changes" to hasChanges
+                        ))
                         onSaveClick(title, content)
                         onBackClick()
                     } else {
@@ -154,15 +174,27 @@ fun NoteEditorScreen(
         if (showSaveDialog) {
             SaveConfirmationDialog(
                 onSave = {
+                    // Track save confirmation
+                    AnalyticsHelper.logEvent("note_save_confirmed", mapOf(
+                        "is_new_note" to (noteId == null)
+                    ))
                     onSaveClick(title, content)
                     showSaveDialog = false
                     onBackClick()
                 },
                 onDiscard = {
+                    // Track discard action
+                    AnalyticsHelper.logEvent("note_changes_discarded", mapOf(
+                        "is_new_note" to (noteId == null)
+                    ))
                     showSaveDialog = false
                     onBackClick()
                 },
                 onDismiss = {
+                    // Track dialog dismissal
+                    AnalyticsHelper.logEvent("save_dialog_dismissed", mapOf(
+                        "is_new_note" to (noteId == null)
+                    ))
                     showSaveDialog = false
                 }
             )
