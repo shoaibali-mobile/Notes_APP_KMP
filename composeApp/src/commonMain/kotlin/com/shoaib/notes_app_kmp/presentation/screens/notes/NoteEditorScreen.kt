@@ -6,10 +6,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,13 +30,26 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 fun NoteEditorScreen(
+    noteId: Long? = null,
+    initialTitle: String = "",
+    initialContent: String = "",
     onBackClick: () -> Unit = {},
-    onVisibilityClick: () -> Unit = {}
+    onVisibilityClick: () -> Unit = {},
+    onSaveClick: (String, String) -> Unit = { _, _ -> }
 ) {
 
-
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(initialTitle) }
+    var content by remember { mutableStateOf(initialContent) }
+    var showSaveDialog by remember { mutableStateOf(false) }
+    
+    val hasChanges = remember(title, content, initialTitle, initialContent) {
+        title != initialTitle || content != initialContent
+    }
+    
+    LaunchedEffect(noteId, initialTitle, initialContent) {
+        title = initialTitle
+        content = initialContent
+    }
 
     Box(
         modifier = Modifier
@@ -51,8 +67,14 @@ fun NoteEditorScreen(
                 onBackClick = onBackClick,
                 onVisibilityClick = onVisibilityClick,
                 onSaveClick = {
-                    // viewModel.addNote(title, content)
-                    onBackClick()
+                    if (hasChanges && (title.isNotBlank() || content.isNotBlank())) {
+                        showSaveDialog = true
+                    } else if (title.isNotBlank() || content.isNotBlank()) {
+                        onSaveClick(title, content)
+                        onBackClick()
+                    } else {
+                        onBackClick()
+                    }
                 }
             )
 
@@ -126,6 +148,24 @@ fun NoteEditorScreen(
                     }
                 )
             }
+        }
+        
+        // Save Confirmation Dialog
+        if (showSaveDialog) {
+            SaveConfirmationDialog(
+                onSave = {
+                    onSaveClick(title, content)
+                    showSaveDialog = false
+                    onBackClick()
+                },
+                onDiscard = {
+                    showSaveDialog = false
+                    onBackClick()
+                },
+                onDismiss = {
+                    showSaveDialog = false
+                }
+            )
         }
     }
 }
@@ -203,6 +243,78 @@ fun TopNavigationBar(
             }
         }
     }
+}
+
+@Composable
+fun SaveConfirmationDialog(
+    onSave: () -> Unit,
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Save Changes?",
+                style = TextStyle(
+                    fontFamily = nunitoFontFamily(),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        },
+        text = {
+            Text(
+                text = "You have unsaved changes. Do you want to save them?",
+                style = TextStyle(
+                    fontFamily = nunitoFontFamily(),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onSave,
+                shape = RoundedCornerShape(12.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Text(
+                    text = "Save",
+                    style = TextStyle(
+                        fontFamily = nunitoFontFamily(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDiscard,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Discard",
+                    style = TextStyle(
+                        fontFamily = nunitoFontFamily(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                )
+            }
+        },
+        shape = RoundedCornerShape(20.dp),
+        containerColor = MaterialTheme.colorScheme.surface,
+        titleContentColor = MaterialTheme.colorScheme.onSurface,
+        textContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+    )
 }
 
 @Preview

@@ -27,7 +27,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Composable
 fun ListNotesScreen(
     list: List<Note>,
-    onNoteClick: () -> Unit = {}
+    onNoteClick: (Long) -> Unit = {}
 ) {
 
 
@@ -35,7 +35,7 @@ fun ListNotesScreen(
         items(list.size, key = { list[it].id }) { index ->
             NoteItem(
                 note = list[index],
-                onClick = onNoteClick
+                onClick = { onNoteClick(list[index].id) }
             )
         }
     }

@@ -31,12 +31,13 @@ fun NotesListScreen(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             AddNoteFAB(
-                onClick = { navController.navigate(Screen.NoteEditor.route) }
+                onClick = { navController.navigate(Screen.NoteEditor.createRoute()) }
             )
         }
     ) { paddingValues ->
         NotesListContent(
             notes = notes,
+            navController = navController,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -46,6 +47,7 @@ fun NotesListScreen(
 @Composable
 private fun NotesListContent(
     notes: List<Note>,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -56,7 +58,9 @@ private fun NotesListContent(
         if (notes.isNotEmpty()) {
             ListNotesScreen(
                 list = notes,
-                onNoteClick = { /* Handle note click */ }
+                onNoteClick = { noteId ->
+                    navController.navigate(Screen.NoteEditor.createRoute(noteId))
+                }
             )
         } else {
             EmptyView()

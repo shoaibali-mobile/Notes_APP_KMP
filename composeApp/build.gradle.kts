@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.ksp)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 kotlin {
@@ -31,6 +33,15 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            
+            // Firebase Analytics (required for Firebase)
+            implementation(libs.firebase.analytics.ktx)
+            
+            // Firebase Crashlytics
+            implementation("com.google.firebase:firebase-crashlytics-ktx")
+            
+            // Firebase Storage (you have storage_bucket configured)
+            implementation(libs.firebase.storage.ktx)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -87,6 +98,10 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+    
+    // Firebase BOM - manages all Firebase library versions
+    // Using add() instead of platform() to avoid deprecation warning
+    add("androidMainApi", platform("com.google.firebase:firebase-bom:33.7.0"))
 }
 
 room {
