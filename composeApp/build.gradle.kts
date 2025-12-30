@@ -43,6 +43,8 @@ kotlin {
             // Firebase Storage (you have storage_bucket configured)
             implementation(libs.firebase.storage.ktx)
 
+            // Biometric authentication
+            implementation("androidx.biometric:biometric:1.1.0")
 
             implementation("net.zetetic:sqlcipher-android:4.5.4")  // Same version, but new library
             // OR use latest stable: implementation("net.zetetic:sqlcipher-android:4.11.0")

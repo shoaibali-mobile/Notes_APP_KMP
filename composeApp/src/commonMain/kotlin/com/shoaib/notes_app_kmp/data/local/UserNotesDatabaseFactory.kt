@@ -2,8 +2,9 @@ package com.shoaib.notes_app_kmp.data.local
 
 import com.shoaib.notes_app_kmp.PlatformContext
 
-expect class DatabaseDriverFactory(
+expect class UserNotesDatabaseFactory(
     platformContext: PlatformContext
 ) {
-    fun createDriver(): NotesDatabase
+    fun createDriver(userId:Int): NotesDatabase
+    fun closeCurrentDatabase()
 }

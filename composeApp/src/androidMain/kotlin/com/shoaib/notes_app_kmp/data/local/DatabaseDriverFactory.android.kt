@@ -1,44 +1,83 @@
 package com.shoaib.notes_app_kmp.data.local
 
 import android.content.Context
-import android.database.sqlite.SQLiteException
 import androidx.room.Room
 import com.shoaib.notes_app_kmp.PlatformContext
 import com.shoaib.notes_app_kmp.util.logD
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.io.File
 
-actual class DatabaseDriverFactory actual constructor(
+/**
+ * Android implementation of UserNotesDatabaseFactory.
+ * Creates user-specific notes databases (notes_user_ID.db) with SQLCipher encryption.
+ * 
+ * Each user gets their own isolated database file for privacy and security.
+ */
+actual class UserNotesDatabaseFactory actual constructor(
     private val platformContext: PlatformContext
 ) {
-    actual fun createDriver(): NotesDatabase {
+    private var currentNotesDb: NotesDatabase? = null
+
+    /**
+     * Creates or retrieves a user-specific notes database.
+     * 
+     * @param userId The ID of the user whose database to create/open
+     * @return NotesDatabase instance for the specified user
+     */
+    actual fun createDriver(userId: Int): NotesDatabase {
         val context = platformContext.context
 
-        // Check and clean up corrupted/invalid database files
-        cleanupCorruptedDatabase(context)
+        // Close previous database if switching users
+        if (currentNotesDb != null) {
+            logD("UserNotesDatabaseFactory", "Closing previous database connection")
+            currentNotesDb?.close()
+            currentNotesDb = null
+        }
 
+        val dbName = "notes_user_$userId.db"
+        logD("UserNotesDatabaseFactory", "Creating/opening database: $dbName")
+
+        // Clean up any corrupted database files for this user
+        cleanupCorruptedDatabase(context, dbName)
+
+        // Get encryption key and create SQLCipher factory
         val encryptionKey = getDatabaseEncryptionKey()
-
         val factory = SupportOpenHelperFactory(encryptionKey)
 
-        return Room.databaseBuilder(
-            context,
+        // Create Room database with SQLCipher encryption
+        val instance = Room.databaseBuilder(
+            context.applicationContext,
             NotesDatabase::class.java,
-            "notes_database"
+            dbName
         )
             .openHelperFactory(factory)
-            .fallbackToDestructiveMigration() // Recreate database if schema changes
+            .fallbackToDestructiveMigration(false) // Recreate database if schema changes
             .build()
+
+        currentNotesDb = instance
+        logD("UserNotesDatabaseFactory", "✅ Database created successfully: $dbName")
+        return instance
     }
 
     /**
-     * Cleans up corrupted or invalid database files.
+     * Closes the current database connection.
+     * Call this when logging out or switching users.
+     */
+    actual fun closeCurrentDatabase() {
+        if (currentNotesDb != null) {
+            logD("UserNotesDatabaseFactory", "Closing current database connection")
+            currentNotesDb?.close()
+            currentNotesDb = null
+        }
+    }
+
+    /**
+     * Cleans up corrupted or invalid database files for a specific user.
      * This handles the case where an unencrypted database exists but we're trying to open it with SQLCipher.
      */
-    private fun cleanupCorruptedDatabase(context: Context) {
-        val dbPath = context.getDatabasePath("notes_database")
+    private fun cleanupCorruptedDatabase(context: Context, dbName: String) {
+        val dbPath = context.getDatabasePath(dbName)
         val dbDir = dbPath.parentFile
-        val dbName = dbPath.name
 
         // List of database-related files to check
         val dbFiles = listOf(
@@ -53,22 +92,22 @@ actual class DatabaseDriverFactory actual constructor(
                 try {
                     // Check if it's an unencrypted SQLite database (which SQLCipher can't open)
                     if (isUnencryptedSQLiteDatabase(file)) {
-                        logD("DatabaseDriverFactory", "🗑️ Found unencrypted SQLite database - deleting: ${file.name}")
+                        logD("UserNotesDatabaseFactory", "🗑️ Found unencrypted SQLite database - deleting: ${file.name}")
                         file.delete()
                     } else if (!isValidSQLCipherDatabase(file)) {
                         // If we can't verify it's valid, delete it to be safe
                         // Room will recreate it with fallbackToDestructiveMigration
-                        logD("DatabaseDriverFactory", "🗑️ Deleting unverifiable database file: ${file.name}")
+                        logD("UserNotesDatabaseFactory", "🗑️ Deleting unverifiable database file: ${file.name}")
                         file.delete()
                     }
                 } catch (e: Exception) {
-                    logD("DatabaseDriverFactory", "⚠️ Error checking database file ${file.name}: ${e.message}")
+                    logD("UserNotesDatabaseFactory", "⚠️ Error checking database file ${file.name}: ${e.message}")
                     // If we can't verify, delete it to be safe
                     try {
                         file.delete()
-                        logD("DatabaseDriverFactory", "🗑️ Deleted unverifiable database file: ${file.name}")
+                        logD("UserNotesDatabaseFactory", "🗑️ Deleted unverifiable database file: ${file.name}")
                     } catch (deleteException: Exception) {
-                        logD("DatabaseDriverFactory", "❌ Failed to delete ${file.name}: ${deleteException.message}")
+                        logD("UserNotesDatabaseFactory", "❌ Failed to delete ${file.name}: ${deleteException.message}")
                     }
                 }
             }
@@ -99,7 +138,7 @@ actual class DatabaseDriverFactory actual constructor(
                 header.sliceArray(0 until sqliteHeader.size).contentEquals(sqliteHeader)
             }
         } catch (e: Exception) {
-            logD("DatabaseDriverFactory", "⚠️ Error reading database file header: ${e.message}")
+            logD("UserNotesDatabaseFactory", "⚠️ Error reading database file header: ${e.message}")
             false
         }
     }

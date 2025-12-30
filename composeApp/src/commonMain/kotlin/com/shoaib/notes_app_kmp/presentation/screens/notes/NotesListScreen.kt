@@ -28,7 +28,8 @@ import androidx.compose.material3.SnackbarHostState
 @Composable
 fun NotesListScreen(
     navController: NavHostController,
-    viewModel: NotesViewModel
+    viewModel: NotesViewModel,
+    userId: Int
 ) {
     val notes by viewModel.notes.collectAsState()
     
@@ -37,11 +38,14 @@ fun NotesListScreen(
         floatingActionButton = {
             AddNoteFAB(
                 onClick = {
-                    // Track FAB click event
-                    AnalyticsHelper.logEvent("fab_clicked", mapOf(
+                    // Track FAB click event with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val fabParams = mutableMapOf<String, Any>(
                         "screen_name" to "notes_list"
-                    ))
-                    navController.navigate(Screen.NoteEditor.createRoute())
+                    )
+                    currentUserId?.let { fabParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("fab_clicked", fabParams)
+                    navController.navigate(Screen.NoteEditor.createRoute(userId))
                 }
             )
         }
@@ -49,6 +53,7 @@ fun NotesListScreen(
         NotesListContent(
             notes = notes,
             navController = navController,
+            userId = userId,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -59,6 +64,7 @@ fun NotesListScreen(
 private fun NotesListContent(
     notes: List<Note>,
     navController: NavHostController,
+    userId: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -70,12 +76,15 @@ private fun NotesListContent(
             ListNotesScreen(
                 list = notes,
                 onNoteClick = { noteId ->
-                    // Track note click event
-                    AnalyticsHelper.logEvent("note_clicked", mapOf(
+                    // Track note click event with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val noteClickParams = mutableMapOf<String, Any>(
                         "note_id" to noteId,
                         "screen_name" to "notes_list"
-                    ))
-                    navController.navigate(Screen.NoteEditor.createRoute(noteId))
+                    )
+                    currentUserId?.let { noteClickParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_clicked", noteClickParams)
+                    navController.navigate(Screen.NoteEditor.createRoute(userId, noteId))
                 }
             )
         } else {

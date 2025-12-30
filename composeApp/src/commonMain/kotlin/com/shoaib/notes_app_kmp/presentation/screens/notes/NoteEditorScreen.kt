@@ -46,8 +46,12 @@ fun NoteEditorScreen(
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var title by remember { mutableStateOf(initialTitle) }
-    var content by remember { mutableStateOf(initialContent) }
+    // Track the last noteId we initialized for to prevent flickering
+    var lastInitializedNoteId by remember(noteId) { mutableStateOf<Long?>(null) }
+
+    // Use noteId as key to reset state only when navigating to a different note
+    var title by remember(noteId) { mutableStateOf(initialTitle) }
+    var content by remember(noteId) { mutableStateOf(initialContent) }
     var showSaveDialog by remember { mutableStateOf(false) }
     var showSaveConfirmationDialog by remember { mutableStateOf(false) }
     
@@ -55,9 +59,26 @@ fun NoteEditorScreen(
         title != initialTitle || content != initialContent
     }
     
-    LaunchedEffect(noteId, initialTitle, initialContent) {
+    // Only update when noteId changes (navigating to different note)
+    // This prevents flickering when note data updates after save
+    LaunchedEffect(noteId) {
+        // Reset state when navigating to a different note
+        if (lastInitializedNoteId != noteId) {
         title = initialTitle
         content = initialContent
+            lastInitializedNoteId = noteId
+        }
+    }
+    
+    // Handle case where note data loads after screen appears (initial values were empty)
+    // Only update if current values are still empty (user hasn't typed yet)
+    LaunchedEffect(initialTitle, initialContent) {
+        if (lastInitializedNoteId == noteId && title.isEmpty() && content.isEmpty()) {
+            if (initialTitle.isNotEmpty() || initialContent.isNotEmpty()) {
+                title = initialTitle
+                content = initialContent
+            }
+        }
     }
 
     Box(
@@ -114,27 +135,36 @@ fun NoteEditorScreen(
         if (showSaveDialog) {
             SaveConfirmationDialog(
                 onSave = {
-                    // Track save confirmation
-                    AnalyticsHelper.logEvent("note_save_confirmed", mapOf(
+                    // Track save confirmation with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val saveParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null)
-                    ))
+                    )
+                    currentUserId?.let { saveParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_save_confirmed", saveParams)
                     onSaveClick(title, content)
                     showSaveDialog = false
                     onBackClick()
                 },
                 onDiscard = {
-                    // Track discard action
-                    AnalyticsHelper.logEvent("note_changes_discarded", mapOf(
+                    // Track discard action with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val discardParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null)
-                    ))
+                    )
+                    currentUserId?.let { discardParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_changes_discarded", discardParams)
                     showSaveDialog = false
                     onBackClick()
                 },
                 onDismiss = {
-                    // Track dialog dismissal
-                    AnalyticsHelper.logEvent("save_dialog_dismissed", mapOf(
+                    // Track dialog dismissal with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val dismissParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null)
-                    ))
+                    )
+                    currentUserId?.let { dismissParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("save_dialog_dismissed", dismissParams)
                     showSaveDialog = false
                 }
             )
@@ -144,36 +174,48 @@ fun NoteEditorScreen(
         if (showSaveConfirmationDialog) {
             SaveNoteConfirmationDialog(
                 onYes = {
-                    // Track save confirmation
-                    AnalyticsHelper.logEvent("note_save_confirmed", mapOf(
+                    // Track save confirmation with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val saveParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null),
                         "source" to "save_button"
-                    ))
+                    )
+                    currentUserId?.let { saveParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_save_confirmed", saveParams)
                     onSaveClick(title, content)
                     showSaveConfirmationDialog = false
                     onBackClick()
                 },
                 onNo = {
-                    // Track "No" action
-                    AnalyticsHelper.logEvent("note_save_cancelled", mapOf(
+                    // Track "No" action with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val cancelParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null),
                         "source" to "save_button"
-                    ))
+                    )
+                    currentUserId?.let { cancelParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_save_cancelled", cancelParams)
                     showSaveConfirmationDialog = false
                 },
                 onNotNow = {
-                    // Track "Not Now" action
-                    AnalyticsHelper.logEvent("note_save_postponed", mapOf(
+                    // Track "Not Now" action with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val postponeParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null),
                         "source" to "save_button"
-                    ))
+                    )
+                    currentUserId?.let { postponeParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_save_postponed", postponeParams)
                     showSaveConfirmationDialog = false
                 },
                 onDismiss = {
-                    // Track dialog dismissal
-                    AnalyticsHelper.logEvent("save_confirmation_dialog_dismissed", mapOf(
+                    // Track dialog dismissal with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val dismissParams = mutableMapOf<String, Any>(
                         "is_new_note" to (noteId == null)
-                    ))
+                    )
+                    currentUserId?.let { dismissParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("save_confirmation_dialog_dismissed", dismissParams)
                     showSaveConfirmationDialog = false
                 }
             )

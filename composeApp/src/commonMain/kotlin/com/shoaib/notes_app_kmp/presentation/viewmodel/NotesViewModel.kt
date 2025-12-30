@@ -38,16 +38,20 @@ class NotesViewModel(
 
                 addNoteUseCase(note)
 
-                // Log analytics event
+                // Log analytics event with dynamic user ID
+                val userId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                val eventParams = mutableMapOf<String, Any>(
+                    "note_id" to (note.id),
+                    "title_length" to title.length,
+                    "content_length" to noteLength,
+                    "has_title" to title.isNotBlank(),
+                    "has_content" to content.isNotBlank()
+                )
+                userId?.let { eventParams["user_id"] = it }
+                
                 AnalyticsHelper.logEvent(
                     if (isNewNote) "note_created" else "note_updated",
-                    mapOf(
-                        "note_id" to (note.id),
-                        "title_length" to title.length,
-                        "content_length" to noteLength,
-                        "has_title" to title.isNotBlank(),
-                        "has_content" to content.isNotBlank()
-                    )
+                    eventParams
                 )
 
                 // Log to Crashlytics for debugging
@@ -57,11 +61,15 @@ class NotesViewModel(
                 // Log exception to Crashlytics
                 CrashlyticsHelper.recordException(e)
 
-                // Log error event to Analytics
-                AnalyticsHelper.logEvent("note_save_error", mapOf(
+                // Log error event to Analytics with dynamic user ID
+                val userId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                val errorParams = mutableMapOf<String, Any>(
                     "error_message" to (e.message ?: "Unknown error"),
                     "is_new_note" to (noteId == null || noteId == 0L)
-                ))
+                )
+                userId?.let { errorParams["user_id"] = it }
+                
+                AnalyticsHelper.logEvent("note_save_error", errorParams)
 
                 // Re-throw to let UI handle it
                 throw e

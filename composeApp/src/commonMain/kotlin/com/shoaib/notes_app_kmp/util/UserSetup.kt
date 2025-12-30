@@ -3,80 +3,107 @@ package com.shoaib.notes_app_kmp.util
 import com.shoaib.notes_app_kmp.getPlatform
 
 /**
- * Sets up default user information for Firebase Analytics and Crashlytics.
- * This should be called after Firebase initialization.
+ * Sets up user information for Firebase Analytics and Crashlytics.
+ * This should be called after user login/signup to set dynamic user IDs.
  */
 object UserSetup {
     
-    private const val DEFAULT_USER_ID = "6t387"
-    private const val DEFAULT_USER_NAME = "shoaib ali"
     private const val TAG = "UserSetup"
+    private var currentUserId: String? = null
+    private var currentUserName: String? = null
     
     /**
-     * Configure default user and device information.
-     * Sets user ID, user properties, and device information for both Analytics and Crashlytics.
+     * Initialize Firebase without setting a default user.
+     * User ID will be set dynamically after login/signup.
      */
-    fun setupDefaultUser() {
-        // Debug logging
-        logD(TAG, "Starting user setup...")
-        logD(TAG, "User ID: $DEFAULT_USER_ID")
-        logD(TAG, "User Name: $DEFAULT_USER_NAME")
+    fun initializeFirebase() {
+        logD(TAG, "Firebase initialized (no default user set)")
+        logD(TAG, "Platform: ${getPlatform().name}")
+        
+        // Set device platform property (not user-specific)
+        AnalyticsHelper.setUserProperty("device_platform", getPlatform().name)
+        CrashlyticsHelper.setCustomKey("device_platform", getPlatform().name)
+        
+        logD(TAG, "✓ Device platform set for Analytics and Crashlytics")
+    }
+    
+    /**
+     * Update user information with dynamic user ID.
+     * Should be called after successful login or signup.
+     * 
+     * @param userId The user's ID (from database)
+     * @param userName The user's username/email
+     */
+    fun updateUser(userId: Int, userName: String) {
+        val userIdString = userId.toString()
+        
+        // Skip if same user is already set
+        if (currentUserId == userIdString && currentUserName == userName) {
+            logD(TAG, "User already set: $userName (ID: $userIdString)")
+            return
+        }
+        
+        logD(TAG, "Setting Firebase user: $userName (ID: $userIdString)")
         logD(TAG, "Platform: ${getPlatform().name}")
         
         // Set user ID for both Analytics and Crashlytics
-        AnalyticsHelper.setUserId(DEFAULT_USER_ID)
-        CrashlyticsHelper.setUserId(DEFAULT_USER_ID)
-        logD(TAG, "✓ User ID set for Analytics and Crashlytics")
+        AnalyticsHelper.setUserId(userIdString)
+        CrashlyticsHelper.setUserId(userIdString)
+        logD(TAG, "✓ User ID set for Analytics and Crashlytics: $userIdString")
         
         // Set user properties for Analytics
-        AnalyticsHelper.setUserProperty("user_name", DEFAULT_USER_NAME)
+        AnalyticsHelper.setUserProperty("user_name", userName)
         AnalyticsHelper.setUserProperty("device_platform", getPlatform().name)
-        AnalyticsHelper.setUserProperty("user_type", "default")
+        AnalyticsHelper.setUserProperty("user_type", "authenticated")
         logD(TAG, "✓ User properties set for Analytics")
         
         // Set custom keys for Crashlytics
-        CrashlyticsHelper.setCustomKey("user_id", DEFAULT_USER_ID)
-        CrashlyticsHelper.setCustomKey("user_name", DEFAULT_USER_NAME)
+        CrashlyticsHelper.setCustomKey("user_id", userIdString)
+        CrashlyticsHelper.setCustomKey("user_name", userName)
         CrashlyticsHelper.setCustomKey("device_platform", getPlatform().name)
-        CrashlyticsHelper.setCustomKey("user_type", "default")
+        CrashlyticsHelper.setCustomKey("user_type", "authenticated")
         logD(TAG, "✓ Custom keys set for Crashlytics")
         
-        // Log setup completion
-        CrashlyticsHelper.log("User setup completed: $DEFAULT_USER_NAME (ID: $DEFAULT_USER_ID)")
-        AnalyticsHelper.logEvent("user_setup_completed", mapOf(
-            "user_id" to DEFAULT_USER_ID,
-            "user_name" to DEFAULT_USER_NAME,
+        // Log user login event
+        CrashlyticsHelper.log("User authenticated: $userName (ID: $userIdString)")
+        AnalyticsHelper.logEvent("user_authenticated", mapOf(
+            "user_id" to userIdString,
+            "user_name" to userName,
             "device_platform" to getPlatform().name
         ))
-        logD(TAG, "✓ User setup completed event logged")
+        logD(TAG, "✓ User authenticated event logged")
         
-        // Log test event to verify everything works
-        AnalyticsHelper.logEvent("test_user_setup", mapOf(
-            "user_id" to DEFAULT_USER_ID,
-            "user_name" to DEFAULT_USER_NAME,
-            "device_platform" to getPlatform().name,
-            "test" to "true"
-        ))
-        logD(TAG, "✓ Test event 'test_user_setup' logged")
+        // Update current user tracking
+        currentUserId = userIdString
+        currentUserName = userName
         
-        logD(TAG, "User setup completed successfully!")
+        logD(TAG, "✓ User setup completed successfully for: $userName (ID: $userIdString)")
     }
     
     /**
-     * Update user information (can be called when user logs in or changes)
+     * Clear user information (call on logout)
      */
-    fun updateUser(userId: String, userName: String) {
-        AnalyticsHelper.setUserId(userId)
-        CrashlyticsHelper.setUserId(userId)
+    fun clearUser() {
+        logD(TAG, "Clearing user information...")
         
-        AnalyticsHelper.setUserProperty("user_name", userName)
-        CrashlyticsHelper.setCustomKey("user_id", userId)
-        CrashlyticsHelper.setCustomKey("user_name", userName)
+        // Clear user ID (set to null/empty)
+        AnalyticsHelper.setUserId("")
+        CrashlyticsHelper.setUserId("")
         
-        AnalyticsHelper.logEvent("user_updated", mapOf(
-            "user_id" to userId,
-            "user_name" to userName
-        ))
+        // Clear user properties
+        AnalyticsHelper.setUserProperty("user_name", "")
+        CrashlyticsHelper.setCustomKey("user_id", "")
+        CrashlyticsHelper.setCustomKey("user_name", "")
+        
+        currentUserId = null
+        currentUserName = null
+        
+        logD(TAG, "✓ User information cleared")
     }
+    
+    /**
+     * Get current user ID (for logging in events)
+     */
+    fun getCurrentUserId(): String? = currentUserId
 }
 

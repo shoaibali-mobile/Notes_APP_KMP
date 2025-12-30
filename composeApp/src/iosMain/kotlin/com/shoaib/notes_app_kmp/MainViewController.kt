@@ -7,19 +7,6 @@ import com.shoaib.notes_app_kmp.util.UserSetup
 import com.shoaib.notes_app_kmp.di.initKoin
 import com.shoaib.notes_app_kmp.util.AppLogger
 
-fun MainViewController() = ComposeUIViewController {
-    // Initialize Firebase services (uses expect/actual pattern)
-    CrashlyticsHelper.initialize()
-    AnalyticsHelper.initialize()
-
-    // Setup default user information
-    UserSetup.setupDefaultUser()
-
-    // Log app launch event
-    AnalyticsHelper.logEvent("app_launched")
-
-    App()
-}
 /**
  * iOS Main View Controller.
  *
@@ -48,7 +35,19 @@ fun MainViewController() = ComposeUIViewController {
 
     AppLogger.d("iOS-App", "🚀 Initializing iOS app...")
 
+    // Initialize Firebase services (uses expect/actual pattern)
+    CrashlyticsHelper.initialize()
+    AnalyticsHelper.initialize()
+
+    // Initialize Firebase (without default user - user ID will be set after login)
+    UserSetup.initializeFirebase()
+
     initKoin()
+
+    // Log app launch event (no user ID until login)
+    AnalyticsHelper.logEvent("app_launched", mapOf(
+        "build_type" to "release" // iOS doesn't have BuildConfig, use "release" as default
+    ))
 
     App()
 }
