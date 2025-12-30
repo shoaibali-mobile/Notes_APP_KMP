@@ -1,14 +1,30 @@
 package com.shoaib.notes_app_kmp
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.shoaib.notes_app_kmp.util.AnalyticsHelper
+import com.shoaib.notes_app_kmp.util.CrashlyticsHelper
+import com.shoaib.notes_app_kmp.util.UserSetup
 import com.shoaib.notes_app_kmp.di.initKoin
 import com.shoaib.notes_app_kmp.util.AppLogger
 
+fun MainViewController() = ComposeUIViewController {
+    // Initialize Firebase services (uses expect/actual pattern)
+    CrashlyticsHelper.initialize()
+    AnalyticsHelper.initialize()
+
+    // Setup default user information
+    UserSetup.setupDefaultUser()
+
+    // Log app launch event
+    AnalyticsHelper.logEvent("app_launched")
+
+    App()
+}
 /**
  * iOS Main View Controller.
- * 
+ *
  * This is the entry point for iOS app.
- * 
+ *
  * IMPORTANT: SQLCipher native library loading
  * - SQLCipher requires native library to be loaded before database operations
  * - After CocoaPods setup, uncomment the dlopen line below
@@ -29,10 +45,10 @@ fun MainViewController() = ComposeUIViewController {
         // Continue anyway - might work if library is statically linked
     }
     */
-    
+
     AppLogger.d("iOS-App", "🚀 Initializing iOS app...")
-    
+
     initKoin()
-    
+
     App()
 }

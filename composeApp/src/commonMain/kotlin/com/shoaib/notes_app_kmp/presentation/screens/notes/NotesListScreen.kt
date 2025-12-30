@@ -16,6 +16,7 @@ import com.shoaib.notes_app_kmp.domain.model.Note
 import com.shoaib.notes_app_kmp.presentation.navigation.Screen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
+import com.shoaib.notes_app_kmp.util.AnalyticsHelper
 import notes_app_kmp.composeapp.generated.resources.Res
 import notes_app_kmp.composeapp.generated.resources.rafiki
 import org.jetbrains.compose.resources.painterResource
@@ -35,12 +36,19 @@ fun NotesListScreen(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             AddNoteFAB(
-                onClick = { navController.navigate(Screen.NoteEditor.route) }
+                onClick = {
+                    // Track FAB click event
+                    AnalyticsHelper.logEvent("fab_clicked", mapOf(
+                        "screen_name" to "notes_list"
+                    ))
+                    navController.navigate(Screen.NoteEditor.createRoute())
+                }
             )
         }
     ) { paddingValues ->
         NotesListContent(
             notes = notes,
+            navController = navController,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -50,6 +58,7 @@ fun NotesListScreen(
 @Composable
 private fun NotesListContent(
     notes: List<Note>,
+    navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -60,7 +69,14 @@ private fun NotesListContent(
         if (notes.isNotEmpty()) {
             ListNotesScreen(
                 list = notes,
-                onNoteClick = { /* Handle note click */ }
+                onNoteClick = { noteId ->
+                    // Track note click event
+                    AnalyticsHelper.logEvent("note_clicked", mapOf(
+                        "note_id" to noteId,
+                        "screen_name" to "notes_list"
+                    ))
+                    navController.navigate(Screen.NoteEditor.createRoute(noteId))
+                }
             )
         } else {
             EmptyView()
@@ -127,4 +143,6 @@ private fun EmptyView() {
         }
     }
 }
+
+
 

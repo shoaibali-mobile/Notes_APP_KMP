@@ -18,3 +18,7 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 .cursorrules
+
+# Firebase configuration files (contains sensitive data)
+**/google-services.json
+**/GoogleService-Info.plist
