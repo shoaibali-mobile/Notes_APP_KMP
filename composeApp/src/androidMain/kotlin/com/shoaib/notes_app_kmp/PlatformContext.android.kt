@@ -11,11 +11,3 @@ fun initAppContext(context: Context) {
     appContext = context
 }
 
-actual fun getPlatformContext(): PlatformContext {
-    return PlatformContext(appContext)
-}
-
-actual fun isPlatformContextInitialized(): Boolean {
-    return ::appContext.isInitialized
-}
-

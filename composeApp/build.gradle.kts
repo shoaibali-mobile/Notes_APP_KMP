@@ -31,6 +31,14 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+
+
+            implementation("net.zetetic:sqlcipher-android:4.5.4")  // Same version, but new library
+            // OR use latest stable: implementation("net.zetetic:sqlcipher-android:4.11.0")
+            implementation("androidx.sqlite:sqlite:2.6.2")
+
+
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -47,6 +55,12 @@ kotlin {
 
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+
+            // Koin
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

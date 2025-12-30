@@ -1,5 +1,38 @@
 package com.shoaib.notes_app_kmp
 
 import androidx.compose.ui.window.ComposeUIViewController
+import com.shoaib.notes_app_kmp.di.initKoin
+import com.shoaib.notes_app_kmp.util.AppLogger
 
-fun MainViewController() = ComposeUIViewController { App() }
+/**
+ * iOS Main View Controller.
+ * 
+ * This is the entry point for iOS app.
+ * 
+ * IMPORTANT: SQLCipher native library loading
+ * - SQLCipher requires native library to be loaded before database operations
+ * - After CocoaPods setup, uncomment the dlopen line below
+ * - Or use static linking if SQLCipher is statically linked
+ */
+fun MainViewController() = ComposeUIViewController {
+    // CRITICAL: Load SQLCipher native library BEFORE initializing database
+    // This must be called before any database operations
+    // Uncomment after SQLCipher CocoaPods is set up:
+    /*
+    try {
+        // Load SQLCipher native library
+        // The library is included via CocoaPods
+        platform.darwin.dlopen("libsqlcipher.dylib", platform.darwin.RTLD_LAZY)
+        AppLogger.d("SQLCipher-iOS", "✅ SQLCipher native library loaded successfully")
+    } catch (e: Exception) {
+        AppLogger.d("SQLCipher-iOS", "⚠️ Warning: Could not load SQLCipher library: ${e.message}")
+        // Continue anyway - might work if library is statically linked
+    }
+    */
+    
+    AppLogger.d("iOS-App", "🚀 Initializing iOS app...")
+    
+    initKoin()
+    
+    App()
+}
