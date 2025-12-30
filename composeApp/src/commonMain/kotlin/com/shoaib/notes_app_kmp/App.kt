@@ -1,31 +1,39 @@
 package com.shoaib.notes_app_kmp
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.shoaib.notes_app_kmp.presentation.navigation.Screen
 import com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen
 import com.shoaib.notes_app_kmp.presentation.screens.notes.NotesListScreen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.NotesAppTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
 import com.shoaib.notes_app_kmp.util.AnalyticsHelper
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 
 @Composable
+@Preview
 fun App() {
     NotesAppTheme {
         AppContent()
     }
 }
 
-
 @Composable
 private fun AppContent() {
     val navController = rememberNavController()
+    
+    // Get ViewModel from Koin using koinInject
     val viewModel: NotesViewModel = koinInject()
 
     NavHost(
@@ -77,7 +85,8 @@ private fun AppContent() {
                 onBackClick = { navController.popBackStack() },
                 onSaveClick = { title, content ->
                     viewModel.addOrUpdateNote(title, content, noteIdForEditor)
-                }
+                },
+                viewModel = viewModel
             )
         }
     }
