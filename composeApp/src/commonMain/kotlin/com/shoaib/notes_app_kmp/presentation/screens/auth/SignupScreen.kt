@@ -37,7 +37,6 @@ fun SignupScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    
     val isLoading by authViewModel.isLoading.collectAsState()
 
     Box(
@@ -232,10 +231,15 @@ fun SignupScreen(
                             username = email.trim(),
                             password = password,
                             onSuccess = { user ->
+                                // Set Firebase user ID dynamically
+                                com.shoaib.notes_app_kmp.util.UserSetup.updateUser(user.id, user.username)
+                                
                                 AnalyticsHelper.logEvent("signup_success", mapOf(
-                                    "user_id" to user.id
+                                    "user_id" to user.id,
+                                    "username" to user.username
                                 ))
-                                // Navigate to notes list with userId
+                                
+                                // Navigate to notes list after successful signup
                                 navController.navigate(Screen.NotesList.createRoute(user.id)) {
                                     popUpTo(Screen.Signup.route) { inclusive = true }
                                 }

@@ -22,6 +22,8 @@ import com.shoaib.notes_app_kmp.presentation.navigation.Screen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.nunitoFontFamily
 import com.shoaib.notes_app_kmp.presentation.viewmodel.AuthViewModel
 import com.shoaib.notes_app_kmp.util.AnalyticsHelper
+import com.shoaib.notes_app_kmp.util.BiometricHelper
+import com.shoaib.notes_app_kmp.util.createBiometricHelper
 import org.koin.compose.koinInject
 
 @Composable
@@ -33,22 +35,67 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    
+    var isBiometricAuthenticated by remember { mutableStateOf(false) }
     val isLoading by authViewModel.isLoading.collectAsState()
+    val biometricHelper = remember { createBiometricHelper() }
+    
+    // Show biometric authentication when login screen loads
+    LaunchedEffect(Unit) {
+        if (biometricHelper.isBiometricAvailable()) {
+            biometricHelper.authenticate(
+                title = "Biometric Authentication",
+                subtitle = "Please authenticate to access the app",
+                onSuccess = {
+                    AnalyticsHelper.logEvent("biometric_success", mapOf(
+                        "source" to "login_screen"
+                    ))
+                    isBiometricAuthenticated = true
+                },
+                onError = { error ->
+                    AnalyticsHelper.logEvent("biometric_error", mapOf(
+                        "error" to error,
+                        "source" to "login_screen"
+                    ))
+                    // If biometric fails, still allow access (for testing/emulators)
+                    isBiometricAuthenticated = true
+                },
+                onCancel = {
+                    AnalyticsHelper.logEvent("biometric_cancelled", mapOf(
+                        "source" to "login_screen"
+                    ))
+                    // If user cancels, still allow access (for testing)
+                    isBiometricAuthenticated = true
+                }
+            )
+        } else {
+            // If biometric not available, allow access
+            isBiometricAuthenticated = true
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .statusBarsPadding(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
+        // Show loading/blocking overlay until biometric authentication completes
+        if (!isBiometricAuthenticated) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            // Show login form only after biometric authentication
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .statusBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
             // Title
             Text(
                 text = "Welcome Back",
@@ -154,10 +201,15 @@ fun LoginScreen(
                             username = email.trim(),
                             password = password,
                             onSuccess = { user ->
+                                // Set Firebase user ID dynamically
+                                com.shoaib.notes_app_kmp.util.UserSetup.updateUser(user.id, user.username)
+                                
                                 AnalyticsHelper.logEvent("login_success", mapOf(
-                                    "user_id" to user.id
+                                    "user_id" to user.id,
+                                    "username" to user.username
                                 ))
-                                // Navigate to notes list with userId
+                                
+                                // Navigate to notes list after successful login
                                 navController.navigate(Screen.NotesList.createRoute(user.id)) {
                                     popUpTo(Screen.Login.route) { inclusive = true }
                                 }
@@ -246,6 +298,7 @@ fun LoginScreen(
                         )
                     )
                 }
+            }
             }
         }
     }

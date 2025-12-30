@@ -38,10 +38,13 @@ fun NotesListScreen(
         floatingActionButton = {
             AddNoteFAB(
                 onClick = {
-                    // Track FAB click event
-                    AnalyticsHelper.logEvent("fab_clicked", mapOf(
+                    // Track FAB click event with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val fabParams = mutableMapOf<String, Any>(
                         "screen_name" to "notes_list"
-                    ))
+                    )
+                    currentUserId?.let { fabParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("fab_clicked", fabParams)
                     navController.navigate(Screen.NoteEditor.createRoute(userId))
                 }
             )
@@ -73,11 +76,14 @@ private fun NotesListContent(
             ListNotesScreen(
                 list = notes,
                 onNoteClick = { noteId ->
-                    // Track note click event
-                    AnalyticsHelper.logEvent("note_clicked", mapOf(
+                    // Track note click event with dynamic user ID
+                    val currentUserId = com.shoaib.notes_app_kmp.util.UserSetup.getCurrentUserId()
+                    val noteClickParams = mutableMapOf<String, Any>(
                         "note_id" to noteId,
                         "screen_name" to "notes_list"
-                    ))
+                    )
+                    currentUserId?.let { noteClickParams["user_id"] = it }
+                    AnalyticsHelper.logEvent("note_clicked", noteClickParams)
                     navController.navigate(Screen.NoteEditor.createRoute(userId, noteId))
                 }
             )
