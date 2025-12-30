@@ -1,0 +1,25 @@
+# iOS CocoaPods Podfile for SQLCipher
+# 
+# To install dependencies:
+# 1. cd iosApp
+# 2. pod install
+# 3. Open iosApp.xcworkspace (NOT .xcodeproj)
+#
+# IMPORTANT: After pod install, always open .xcworkspace file!
+
+platform :ios, '13.0'
+use_frameworks!
+
+target 'iosApp' do
+  # SQLCipher for database encryption
+  # Version 4.5.4 matches Android version
+  pod 'SQLCipher', '~> 4.5.4'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+    end
+  end
+end

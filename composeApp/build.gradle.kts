@@ -33,15 +33,23 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            
+
             // Firebase Analytics (required for Firebase)
             implementation(libs.firebase.analytics.ktx)
-            
+
             // Firebase Crashlytics
             implementation("com.google.firebase:firebase-crashlytics-ktx")
-            
+
             // Firebase Storage (you have storage_bucket configured)
             implementation(libs.firebase.storage.ktx)
+
+
+            implementation("net.zetetic:sqlcipher-android:4.5.4")  // Same version, but new library
+            // OR use latest stable: implementation("net.zetetic:sqlcipher-android:4.11.0")
+            implementation("androidx.sqlite:sqlite:2.6.2")
+
+
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -58,6 +66,12 @@ kotlin {
 
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+
+            // Koin
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -76,12 +90,12 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
-    
+
     // Enable BuildConfig generation for Kotlin Multiplatform
     buildFeatures {
         buildConfig = true
     }
-    
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -104,7 +118,7 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    
+
     // Firebase BOM - manages all Firebase library versions
     // Using add() instead of platform() to avoid deprecation warning
     add("androidMainApi", platform("com.google.firebase:firebase-bom:33.7.0"))

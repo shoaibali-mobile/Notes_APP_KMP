@@ -1,62 +1,32 @@
 package com.shoaib.notes_app_kmp
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.shoaib.notes_app_kmp.data.local.DatabaseDriverFactory
-import com.shoaib.notes_app_kmp.data.local.NotesLocalDataSource
-import com.shoaib.notes_app_kmp.data.repository.NotesRepositoryImpl
-import com.shoaib.notes_app_kmp.domain.usecase.AddNoteUseCase
 import com.shoaib.notes_app_kmp.presentation.navigation.Screen
 import com.shoaib.notes_app_kmp.presentation.screens.notes.NoteEditorScreen
 import com.shoaib.notes_app_kmp.presentation.screens.notes.NotesListScreen
 import com.shoaib.notes_app_kmp.presentation.ui.theme.NotesAppTheme
 import com.shoaib.notes_app_kmp.presentation.viewmodel.NotesViewModel
 import com.shoaib.notes_app_kmp.util.AnalyticsHelper
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 
 @Composable
-@Preview
 fun App() {
     NotesAppTheme {
         AppContent()
     }
 }
 
+
 @Composable
 private fun AppContent() {
     val navController = rememberNavController()
-    
-    val viewModelFactory = remember {
-        object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val platformContext = getPlatformContext()
-                val databaseFactory = DatabaseDriverFactory(platformContext)
-                val database = databaseFactory.createDriver()
-                val noteDao = database.noteDao()
-                val localDataSource = NotesLocalDataSource(noteDao)
-                val repository = NotesRepositoryImpl(localDataSource)
-                val addNoteUseCase = AddNoteUseCase(repository)
-                
-                return NotesViewModel(repository, addNoteUseCase) as T
-            }
-        }
-    }
-    
-    val viewModel: NotesViewModel = viewModel(factory = viewModelFactory)
+    val viewModel: NotesViewModel = koinInject()
 
     NavHost(
         navController = navController,
@@ -70,7 +40,7 @@ private fun AppContent() {
                     "screen_name" to "notes_list"
                 ))
             }
-            
+
             NotesListScreen(
                 navController = navController,
                 viewModel = viewModel
@@ -90,7 +60,7 @@ private fun AppContent() {
             val notes by viewModel.notes.collectAsState()
             val note = notes.find { it.id == noteId }
             val noteIdForEditor = if (noteId == 0L) null else noteId
-            
+
             // Track screen view
             LaunchedEffect(noteId) {
                 AnalyticsHelper.logEvent("screen_view", mapOf(
@@ -99,7 +69,7 @@ private fun AppContent() {
                     "note_id" to noteId
                 ))
             }
-            
+
             NoteEditorScreen(
                 noteId = noteIdForEditor,
                 initialTitle = note?.title ?: "",
