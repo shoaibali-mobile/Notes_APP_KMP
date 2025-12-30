@@ -10,7 +10,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
 /**
- * iOS implementation of DatabaseDriverFactory with SQLCipher encryption.
+ * iOS implementation of UserNotesDatabaseFactory with SQLCipher encryption.
  * 
  * NOTE: SQLCipher for iOS requires:
  * 1. CocoaPods dependency: pod 'SQLCipher', '~> 4.5.4'
@@ -26,15 +26,31 @@ import platform.Foundation.NSUserDomainMask
  * - TODO: Integrate SQLCipher driver when CocoaPods is set up
  * - Encryption key is retrieved and ready to use
  */
-actual class DatabaseDriverFactory actual constructor(
-    platformContext: PlatformContext
+actual class UserNotesDatabaseFactory actual constructor(
+    private val platformContext: PlatformContext
 ) {
-    actual fun createDriver(): NotesDatabase {
-        val tag = "SQLCipher-iOS"
+    private var currentNotesDb: NotesDatabase? = null
+
+    /**
+     * Creates or retrieves a user-specific notes database.
+     * 
+     * @param userId The ID of the user whose database to create/open
+     * @return NotesDatabase instance for the specified user
+     */
+    actual fun createDriver(userId: Int): NotesDatabase {
+        val tag = "UserNotesDatabaseFactory-iOS"
         
-        AppLogger.d(tag, "🔐 Initializing database (iOS)...")
+        // Close previous database if switching users
+        if (currentNotesDb != null) {
+            AppLogger.d(tag, "Closing previous database connection")
+            currentNotesDb?.close()
+            currentNotesDb = null
+        }
+
+        val dbName = "notes_user_$userId.db"
+        AppLogger.d(tag, "Creating/opening database: $dbName")
         
-        val dbPath = getDatabasePath()
+        val dbPath = getDatabasePath(dbName)
         
         // Get encryption key from Keychain
         val encryptionKey = getDatabaseEncryptionKey()
@@ -89,12 +105,25 @@ actual class DatabaseDriverFactory actual constructor(
             .fallbackToDestructiveMigration()  // Allow Room to recreate database if schema changes
             .build()
         
-        AppLogger.d(tag, "✅ Database initialized successfully")
+        AppLogger.d(tag, "✅ Database created successfully: $dbName")
         
+        currentNotesDb = database
         return database
     }
 
-    private fun getDatabasePath(): String {
+    /**
+     * Closes the current database connection.
+     * Call this when logging out or switching users.
+     */
+    actual fun closeCurrentDatabase() {
+        if (currentNotesDb != null) {
+            AppLogger.d("UserNotesDatabaseFactory-iOS", "Closing current database connection")
+            currentNotesDb?.close()
+            currentNotesDb = null
+        }
+    }
+
+    private fun getDatabasePath(dbName: String): String {
         val fileManager = NSFileManager.defaultManager
         val urls = fileManager.URLsForDirectory(
             NSDocumentDirectory,
@@ -106,6 +135,6 @@ actual class DatabaseDriverFactory actual constructor(
         val dbPath = documentsDirectory.path
             ?: throw IllegalStateException("Database path not found")
 
-        return "$dbPath/notes_database.db"
+        return "$dbPath/$dbName"
     }
 }

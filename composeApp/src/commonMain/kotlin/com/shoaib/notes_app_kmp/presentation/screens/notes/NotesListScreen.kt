@@ -28,7 +28,8 @@ import androidx.compose.material3.SnackbarHostState
 @Composable
 fun NotesListScreen(
     navController: NavHostController,
-    viewModel: NotesViewModel
+    viewModel: NotesViewModel,
+    userId: Int
 ) {
     val notes by viewModel.notes.collectAsState()
     
@@ -41,7 +42,7 @@ fun NotesListScreen(
                     AnalyticsHelper.logEvent("fab_clicked", mapOf(
                         "screen_name" to "notes_list"
                     ))
-                    navController.navigate(Screen.NoteEditor.createRoute())
+                    navController.navigate(Screen.NoteEditor.createRoute(userId))
                 }
             )
         }
@@ -49,6 +50,7 @@ fun NotesListScreen(
         NotesListContent(
             notes = notes,
             navController = navController,
+            userId = userId,
             modifier = Modifier.padding(paddingValues)
         )
     }
@@ -59,6 +61,7 @@ fun NotesListScreen(
 private fun NotesListContent(
     notes: List<Note>,
     navController: NavHostController,
+    userId: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -75,7 +78,7 @@ private fun NotesListContent(
                         "note_id" to noteId,
                         "screen_name" to "notes_list"
                     ))
-                    navController.navigate(Screen.NoteEditor.createRoute(noteId))
+                    navController.navigate(Screen.NoteEditor.createRoute(userId, noteId))
                 }
             )
         } else {
