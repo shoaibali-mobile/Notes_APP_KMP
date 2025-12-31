@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.androidx.room)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlinx.serialization)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
@@ -43,6 +44,9 @@ kotlin {
             // Firebase Storage (you have storage_bucket configured)
             implementation(libs.firebase.storage.ktx)
 
+            // Firebase Remote Config
+            implementation("com.google.firebase:firebase-config-ktx")
+
 
             implementation("net.zetetic:sqlcipher-android:4.5.4")  // Same version, but new library
             // OR use latest stable: implementation("net.zetetic:sqlcipher-android:4.11.0")
@@ -66,6 +70,9 @@ kotlin {
 
             implementation(libs.androidx.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
+
+            // Material Icons Extended
+            implementation(compose.materialIconsExtended)
 
             // Koin
             implementation(libs.koin.core)
