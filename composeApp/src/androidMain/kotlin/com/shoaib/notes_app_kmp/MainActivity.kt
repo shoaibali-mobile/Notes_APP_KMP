@@ -50,6 +50,9 @@ class MainActivity : ComponentActivity() {
         }
         initKoin()
 
+        // Initialize Remote Config
+        val remoteConfigHelper = com.shoaib.notes_app_kmp.util.createRemoteConfigHelper()
+        remoteConfigHelper.initialize()
 
         // Setup default user information
         UserSetup.setupDefaultUser()
